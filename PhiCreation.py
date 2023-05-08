@@ -7,15 +7,24 @@ Created on Mon May  8 15:14:43 2023
 import numpy as np
 import CausticLib as CL
 
-D = np.load("Difference/D_testing.npy")
+def compute_Phi(D, nb_it, h, i=""):
 
-w = 0.1; h = 0.1 # real dimentions, like meters
-sub_w, sub_h = np.shape(D)
-
-h = w/sub_w
-nb_it = 2000
-phi = CL.poisson_iteration_solver(D, h, CL.Jacobi_method, nb_it)
-
-CL.plot_hmap(phi,"Phi",save = "Phi/Phi_plot.png")
-
-np.save("Phi/Phi_testing.npy", phi)
+    phi = CL.poisson_iteration_solver(D, h, CL.Jacobi_method, nb_it)
+    
+    CL.plot_hmap(phi,f"Phi {i}",save = f"Phi/Phi_plot{i}.png")
+    
+    np.save(f"Phi/Phi_testing{i}.npy", phi)
+    
+    return phi
+    
+def main():
+    
+    D = np.load("Difference/D_testing.npy")
+    nb_it = 200
+    
+    w = 0.1; h = 0.1 # real dimentions, like meters
+    sub_w, sub_h = np.shape(D)
+    
+    h = w/sub_w
+    
+    compute_Phi(D, nb_it, h)

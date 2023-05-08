@@ -17,23 +17,76 @@ class Grid:
         self.w, self.h, d = np.shape(self.pts)
         
         
-    def plot_grid(self, title = "", save = False):
-        fig,ax = plt.subplots(figsize=(10,10))
+    def plot_grid(self, title = "", save = False, lineW=2., markerS=4., dpi=500):
+        fig,ax = plt.subplots(figsize=(10,10),dpi=dpi)
         grid_lat = self.pts.transpose(1,0,2)
 
         plotsArr_pts = self.pts.reshape((-1,2)).T
 
-        plt.scatter(plotsArr_pts[0], plotsArr_pts[1])
-        plt.gca().add_collection(LineCollection(self.pts))
-        plt.gca().add_collection(LineCollection(grid_lat))
+        plt.scatter(plotsArr_pts[0], plotsArr_pts[1], s=markerS)
+        plt.gca().add_collection(LineCollection(self.pts,linewidth=lineW))
+        plt.gca().add_collection(LineCollection(grid_lat,linewidth=lineW))
         
         ax.set_title(title)
         
         if save:
-            plt.savefig(save, dpi=1200)
+            plt.savefig(save, dpi=dpi)
+        else:
+            plt.show()
         
+    def min_dist_dt(self):
         
-        plt.show()
+        dt = np.zeros((self.w,self.h))
+        for i in range(self.w):
+            for j in range(self.h):
+                
+                if i == 0:
+                    if j == 0:
+                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
+                                       mag(self.pts[i,j], self.pts[i,j+1]) ])
+                    elif j == self.h-1:
+                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
+                                       mag(self.pts[i,j], self.pts[i,j-1]) ])
+                    else:
+                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
+                                       mag(self.pts[i,j], self.pts[i,j-1]),
+                                       mag(self.pts[i,j], self.pts[i,j+1])])
+                        
+                elif i == self.w-1:
+                    if j == 0:
+                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
+                                       mag(self.pts[i,j], self.pts[i,j+1]) ])
+                    elif j == self.h-1:
+                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
+                                       mag(self.pts[i,j], self.pts[i,j-1]) ])
+                    else:
+                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
+                                       mag(self.pts[i,j], self.pts[i,j-1]),
+                                       mag(self.pts[i,j], self.pts[i,j+1])])
+                
+                else:
+                    if j == 0:
+                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i,j+1]),
+                                       mag(self.pts[i,j], self.pts[i+1,j]),
+                                       mag(self.pts[i,j], self.pts[i-1,j])])
+                    elif j == self.h-1:
+                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i,j-1]),
+                                       mag(self.pts[i,j], self.pts[i+1,j]),
+                                       mag(self.pts[i,j], self.pts[i-1,j])])
+                    else:
+                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
+                                       mag(self.pts[i,j], self.pts[i-1,j]),
+                                       mag(self.pts[i,j], self.pts[i,j+1]),
+                                       mag(self.pts[i,j], self.pts[i,j-1]),
+                                       mag(self.pts[i,j], self.pts[i+1,j-1]),
+                                       mag(self.pts[i,j], self.pts[i-1,j+1]),
+                                       mag(self.pts[i,j], self.pts[i+1,j+1]),
+                                       mag(self.pts[i,j], self.pts[i-1,j-1])])
+                        
+                    
+                
+                
+        return dt
         
     @property
     def cells(self):
@@ -50,10 +103,6 @@ class Grid:
             for j in range(self.h):
                 cell_a[i][j] = cs[i-1][j-1].area
         return cell_a
-    
-#     @property
-#     def total_area(self):
-#         return sum([sum([c.area for c in subArr]) for subArr in self.cells])
         
         
     class Cell:
@@ -88,9 +137,9 @@ def poisson_iteration_solver(D, h, method, maxIt = 200):
     phi = np.zeros_like(D)
     
     for i in range(maxIt):
-        phi = method(phi,-D,h)
+        phi = method(phi,D,h)
         
-    return -phi
+    return phi
 
     
 def Jacobi_method(phi_matrix, D, h):
@@ -108,7 +157,8 @@ def Jacobi_method(phi_matrix, D, h):
     
     return phi
 
-
+def mag(a, b):
+    return np.linalg.norm(a-b)
         
 ##################### PLOTTING FUNCTIONS ##################################
 lowest = 0.25
@@ -139,23 +189,44 @@ def plot_linearmap(cdict):
 
 # plot_linearmap(cdict)
 
-def plot_hmap(input_img, title, minmax = False, save = False):
+def plot_hmap(input_img, title='', minmax = False, save = False, dpi = 500):
     if minmax:
         vmin, vmax = minmax
-        fig, ax = plt.subplots(figsize=(10,10))
+        fig, ax = plt.subplots(figsize=(10,10),dpi = dpi)
         shw = ax.imshow(input_img, cmap=cmap_lsc, vmin=vmin, vmax=vmax)
         ax.set_title(title)
         plt.colorbar(shw)
         if save:
-            plt.savefig(save, dpi=1200)
+            plt.savefig(save, dpi=dpi)
         plt.show()
     else:
-        fig, ax = plt.subplots(figsize=(10,10))
+        fig, ax = plt.subplots(figsize=(10,10), dpi=dpi)
         shw = ax.imshow(input_img, cmap=cmap_lsc)
         ax.set_title(title)
         plt.colorbar(shw)
         if save:
-            plt.savefig(save, dpi=1200)
+            plt.savefig(save, dpi=dpi)
         plt.show()
     
+def plot_vectField(x,y,v, arr_nb=5, dpi=500):
+    fig, ax = plt.subplots(figsize=(10,10),dpi = dpi)
+    plt.quiver(x[::arr_nb,::arr_nb],y[::arr_nb,::arr_nb],v[:,:,0][::arr_nb,::arr_nb],v[:,:,1][::arr_nb,::arr_nb])
+    plt.show()
     
+    
+def gradient(phi):
+    N, N = np.shape(phi)
+    grad_x, grad_y = np.zeros((N,N)), np.zeros((N,N))
+    grad_x[:,1:N-1] = phi[:,1:N-1] - phi[:,:N-2]
+    grad_y[1:N-1,:] = phi[1:N-1,:] - phi[:N-2,:]
+    grad = np.zeros((N,N,2))
+    grad[:,:,0] = grad_x; grad[:,:,1] = grad_y
+    return grad
+
+def divergence(N_xy):
+    N, N, d = np.shape(N_xy)
+    div = np.zeros((N,N))
+    div[1:,1:] = N_xy[1:,1:,0]-N_xy[:N-1,1:,0] + N_xy[1:,1:,1]-N_xy[1:,:N-1,1]
+    div[N-1,:] = np.zeros_like(div[N-1,:])
+    div[:,N-1] = np.zeros_like(div[:,N-1])
+    return div
