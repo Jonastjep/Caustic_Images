@@ -27,6 +27,8 @@ class Grid:
         plt.gca().add_collection(LineCollection(self.pts,linewidth=lineW))
         plt.gca().add_collection(LineCollection(grid_lat,linewidth=lineW))
         
+        plt.gca().invert_yaxis()
+        
         ax.set_title(title)
         
         if save:
@@ -70,52 +72,6 @@ class Grid:
                 dt[i,j,1] = single_dt(self.pts[i,j],self.pts[i,j+1],self.pts[i+1,j+1],v[i,j],v[i,j+1],v[i+1,j+1])
                 
         return dt
-    
-    
-        #         if i == 0:
-        #             if j == 0:
-        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
-        #                                mag(self.pts[i,j], self.pts[i,j+1]) ])
-        #             elif j == self.h-1:
-        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
-        #                                mag(self.pts[i,j], self.pts[i,j-1]) ])
-        #             else:
-        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
-        #                                mag(self.pts[i,j], self.pts[i,j-1]),
-        #                                mag(self.pts[i,j], self.pts[i,j+1])])
-                        
-        #         elif i == self.w-1:
-        #             if j == 0:
-        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
-        #                                mag(self.pts[i,j], self.pts[i,j+1]) ])
-        #             elif j == self.h-1:
-        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
-        #                                mag(self.pts[i,j], self.pts[i,j-1]) ])
-        #             else:
-        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
-        #                                mag(self.pts[i,j], self.pts[i,j-1]),
-        #                                mag(self.pts[i,j], self.pts[i,j+1])])
-                
-        #         else:
-        #             if j == 0:
-        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i,j+1]),
-        #                                mag(self.pts[i,j], self.pts[i+1,j]),
-        #                                mag(self.pts[i,j], self.pts[i-1,j])])
-        #             elif j == self.h-1:
-        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i,j-1]),
-        #                                mag(self.pts[i,j], self.pts[i+1,j]),
-        #                                mag(self.pts[i,j], self.pts[i-1,j])])
-        #             else:
-        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
-        #                                mag(self.pts[i,j], self.pts[i-1,j]),
-        #                                mag(self.pts[i,j], self.pts[i,j+1]),
-        #                                mag(self.pts[i,j], self.pts[i,j-1]),
-        #                                mag(self.pts[i,j], self.pts[i+1,j-1]),
-        #                                mag(self.pts[i,j], self.pts[i-1,j+1]),
-        #                                mag(self.pts[i,j], self.pts[i+1,j+1]),
-        #                                mag(self.pts[i,j], self.pts[i-1,j-1])])
-                        
-                    
         
         
     @property
@@ -249,17 +205,34 @@ def plot_vectField(x,y,v, arr_nb=5, dpi=500, save=False, title=""):
     
     plt.quiver(x[::arr_nb,::arr_nb],y[::arr_nb,::arr_nb],v[:,:,0][::arr_nb,::arr_nb],v[:,:,1][::arr_nb,::arr_nb])
     
+    plt.gca().invert_yaxis()
+    
     if save:
         plt.savefig(save, dpi=dpi)
+        
     
     plt.show()
     
     
 def gradient(phi):
-    N, N = np.shape(phi)
+    N, M = np.shape(phi)
     grad_x, grad_y = np.zeros((N,N)), np.zeros((N,N))
+    
+    # #less efficient
+    # for i in range(N):
+    #     for j in range(M):
+            
+    #         if i<N-1:
+    #             grad_x[i,j] = phi[i+1,j] - phi[i,j]
+    #         if j<M-1:
+    #             grad_y[i,j] = phi[i,j+1] - phi[i,j]
+                
+    #more efficient
     grad_x[:,1:N-1] = phi[:,1:N-1] - phi[:,:N-2]
     grad_y[1:N-1,:] = phi[1:N-1,:] - phi[:N-2,:]
+    grad = np.zeros((N,N,2))
+    grad[:,:,0] = grad_x; grad[:,:,1] = grad_y
+            
     grad = np.zeros((N,N,2))
     grad[:,:,0] = grad_x; grad[:,:,1] = grad_y
     return grad

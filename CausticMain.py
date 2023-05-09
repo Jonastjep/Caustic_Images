@@ -22,7 +22,7 @@ fig,ax = plt.subplots(figsize=(10,10),dpi=500)
 plt.imshow(im_arr, cmap="gray")
 plt.show()
 
-w = 10; h = 10 # real dimentions, like meters
+w = 0.1; h = 0.1 # real dimentions, like meters
 sub_w, sub_h = np.shape(im_arr)
 
 #creation of the grid points to be given to the object Grid
@@ -54,11 +54,12 @@ img_grid = CL.Grid(grid_pts)
 # #####################################################################
 
 
-for i in range(5):
-    D = compute_D(im_arr, w, h, sub_w, sub_h, img_grid, i=str(i), minmax = (-0.000003,0.000003))
+for i in range(25):
+    D = compute_D(im_arr, w, h, sub_w, sub_h, img_grid, i=str(i))
     
     h = w/sub_w
-    nb_it = 200
+    h=1
+    nb_it = 500
     
     phi = compute_Phi(-D, nb_it, h, str(i))
     
@@ -71,5 +72,5 @@ for i in range(5):
     
     img_grid.pts += v*dt
     
-    img_grid.plot_grid(lineW=0.15,markerS=0, save=f"Grid/Grid{i}.png")
+    img_grid.plot_grid(lineW=0.25,markerS=0, save=f"Grid/Grid{i}.png")
     
