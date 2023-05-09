@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 import CausticLib as CL
 
-def compute_D(im_arr, w, h, sub_w, sub_h, img_grid, i = ""):
+def compute_D(im_arr, w, h, sub_w, sub_h, img_grid, i = "", minmax = False):
     
     cell_areas = img_grid.cell_areas
     total_area = np.sum(cell_areas)
@@ -17,7 +17,10 @@ def compute_D(im_arr, w, h, sub_w, sub_h, img_grid, i = ""):
     C = im_arr/np.sum(im_arr)
     D = cell_areas/total_area - C
     
-    CL.plot_hmap(D,f"Difference {i}", save = f"Difference/D_plot{i}.png")
+    if minmax:
+        CL.plot_hmap(D,f"Difference {i}", save = f"Difference/D_plot{i}.png", minmax = minmax)
+    else:
+        CL.plot_hmap(D,f"Difference {i}", save = f"Difference/D_plot{i}.png")
     
     np.save(f"Difference/D_testing{i}.npy", D)
     

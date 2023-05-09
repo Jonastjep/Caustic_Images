@@ -34,59 +34,89 @@ class Grid:
         else:
             plt.show()
         
-    def min_dist_dt(self):
+    def min_dist_dt(self, v):
         
-        dt = np.zeros((self.w,self.h))
-        for i in range(self.w):
-            for j in range(self.h):
-                
-                if i == 0:
-                    if j == 0:
-                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
-                                       mag(self.pts[i,j], self.pts[i,j+1]) ])
-                    elif j == self.h-1:
-                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
-                                       mag(self.pts[i,j], self.pts[i,j-1]) ])
-                    else:
-                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
-                                       mag(self.pts[i,j], self.pts[i,j-1]),
-                                       mag(self.pts[i,j], self.pts[i,j+1])])
-                        
-                elif i == self.w-1:
-                    if j == 0:
-                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
-                                       mag(self.pts[i,j], self.pts[i,j+1]) ])
-                    elif j == self.h-1:
-                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
-                                       mag(self.pts[i,j], self.pts[i,j-1]) ])
-                    else:
-                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
-                                       mag(self.pts[i,j], self.pts[i,j-1]),
-                                       mag(self.pts[i,j], self.pts[i,j+1])])
-                
+        def single_dt(p1,p2,p3,v1,v2,v3):
+            u = vect(v2 - v1)
+            v = vect(v3 - v1)
+            p12 = vect(p2 - p1)
+            p13 = vect(p3 - p1)
+            
+            a = u.x*v.y - u.y*v.x
+            b = u.x*p13.y + v.y*p12.x - u.y*p13.x - v.x*p12.y
+            c = p12.x*p13.y - p12.y*p13.x
+            
+            delta = b**2-4*a*c
+            
+            if delta >= 0:
+                ts = np.array([(-b+np.sqrt(delta))/(2*a),(-b-np.sqrt(delta))/(2*a)])
+                ts[ts<=0] = np.nan
+                return np.nanmin(ts)
+            
+            elif delta == 0:
+                t = -b/a
+                if t <= 0:
+                    return np.Nan
                 else:
-                    if j == 0:
-                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i,j+1]),
-                                       mag(self.pts[i,j], self.pts[i+1,j]),
-                                       mag(self.pts[i,j], self.pts[i-1,j])])
-                    elif j == self.h-1:
-                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i,j-1]),
-                                       mag(self.pts[i,j], self.pts[i+1,j]),
-                                       mag(self.pts[i,j], self.pts[i-1,j])])
-                    else:
-                        dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
-                                       mag(self.pts[i,j], self.pts[i-1,j]),
-                                       mag(self.pts[i,j], self.pts[i,j+1]),
-                                       mag(self.pts[i,j], self.pts[i,j-1]),
-                                       mag(self.pts[i,j], self.pts[i+1,j-1]),
-                                       mag(self.pts[i,j], self.pts[i-1,j+1]),
-                                       mag(self.pts[i,j], self.pts[i+1,j+1]),
-                                       mag(self.pts[i,j], self.pts[i-1,j-1])])
-                        
-                    
-                
+                    return -b/a
+            else:
+                return np.NaN
+        
+        dt = np.zeros((self.w-1, self.h-1, 2))
+        
+        for i in range(self.w-1):
+            for j in range(self.h-1):
+                dt[i,j,0] = single_dt(self.pts[i,j],self.pts[i+1,j],self.pts[i+1,j+1],v[i,j],v[i+1,j],v[i+1,j+1])
+                dt[i,j,1] = single_dt(self.pts[i,j],self.pts[i,j+1],self.pts[i+1,j+1],v[i,j],v[i,j+1],v[i+1,j+1])
                 
         return dt
+    
+    
+        #         if i == 0:
+        #             if j == 0:
+        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
+        #                                mag(self.pts[i,j], self.pts[i,j+1]) ])
+        #             elif j == self.h-1:
+        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
+        #                                mag(self.pts[i,j], self.pts[i,j-1]) ])
+        #             else:
+        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
+        #                                mag(self.pts[i,j], self.pts[i,j-1]),
+        #                                mag(self.pts[i,j], self.pts[i,j+1])])
+                        
+        #         elif i == self.w-1:
+        #             if j == 0:
+        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
+        #                                mag(self.pts[i,j], self.pts[i,j+1]) ])
+        #             elif j == self.h-1:
+        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
+        #                                mag(self.pts[i,j], self.pts[i,j-1]) ])
+        #             else:
+        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i-1,j]),
+        #                                mag(self.pts[i,j], self.pts[i,j-1]),
+        #                                mag(self.pts[i,j], self.pts[i,j+1])])
+                
+        #         else:
+        #             if j == 0:
+        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i,j+1]),
+        #                                mag(self.pts[i,j], self.pts[i+1,j]),
+        #                                mag(self.pts[i,j], self.pts[i-1,j])])
+        #             elif j == self.h-1:
+        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i,j-1]),
+        #                                mag(self.pts[i,j], self.pts[i+1,j]),
+        #                                mag(self.pts[i,j], self.pts[i-1,j])])
+        #             else:
+        #                 dt[i,j] = min([mag(self.pts[i,j], self.pts[i+1,j]),
+        #                                mag(self.pts[i,j], self.pts[i-1,j]),
+        #                                mag(self.pts[i,j], self.pts[i,j+1]),
+        #                                mag(self.pts[i,j], self.pts[i,j-1]),
+        #                                mag(self.pts[i,j], self.pts[i+1,j-1]),
+        #                                mag(self.pts[i,j], self.pts[i-1,j+1]),
+        #                                mag(self.pts[i,j], self.pts[i+1,j+1]),
+        #                                mag(self.pts[i,j], self.pts[i-1,j-1])])
+                        
+                    
+        
         
     @property
     def cells(self):
@@ -159,6 +189,11 @@ def Jacobi_method(phi_matrix, D, h):
 
 def mag(a, b):
     return np.linalg.norm(a-b)
+
+class vect:
+    def __init__(self, v):
+        self.x = v[0]
+        self.y = v[1]
         
 ##################### PLOTTING FUNCTIONS ##################################
 lowest = 0.25
@@ -208,9 +243,15 @@ def plot_hmap(input_img, title='', minmax = False, save = False, dpi = 500):
             plt.savefig(save, dpi=dpi)
         plt.show()
     
-def plot_vectField(x,y,v, arr_nb=5, dpi=500):
+def plot_vectField(x,y,v, arr_nb=5, dpi=500, save=False, title=""):
     fig, ax = plt.subplots(figsize=(10,10),dpi = dpi)
+    ax.set_title(title)
+    
     plt.quiver(x[::arr_nb,::arr_nb],y[::arr_nb,::arr_nb],v[:,:,0][::arr_nb,::arr_nb],v[:,:,1][::arr_nb,::arr_nb])
+    
+    if save:
+        plt.savefig(save, dpi=dpi)
+    
     plt.show()
     
     

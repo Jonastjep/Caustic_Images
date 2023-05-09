@@ -53,29 +53,23 @@ img_grid = CL.Grid(grid_pts)
     
 # #####################################################################
 
-# v = np.reshape(np.gradient(phi),np.shape(img_grid.pts))
 
-# img_grid.pts = img_grid.pts + v*(img_grid.min_dist_dt()[:,:,np.newaxis]/2) #[:,:,np.newaxis] gives an extra dimenton to the matrix (https://stackoverflow.com/questions/29241056/how-do-i-use-np-newaxis)
-
-
-# img_grid.plot_grid(save=f"plot.png", lineW=0.05,markerS=0)
-
-for i in range(1):
-    D = compute_D(im_arr, w, h, sub_w, sub_h, img_grid, i=str(i))
+for i in range(5):
+    D = compute_D(im_arr, w, h, sub_w, sub_h, img_grid, i=str(i), minmax = (-0.000003,0.000003))
     
     h = w/sub_w
-    nb_it = 50
+    nb_it = 200
     
     phi = compute_Phi(-D, nb_it, h, str(i))
     
+    
     v = CL.gradient(phi)
-    CL.plot_vectField(x,y,v)
+    np.save(f"VectorField{i}.npy", v)
+    CL.plot_vectField(x,y,v,title="V VectField",save=f"VectorField/VectorField{i}.png")
     
-    push = v*(img_grid.min_dist_dt()[:,:,np.newaxis]/2) #[:,:,np.newaxis] gives an extra dimenton to the matrix (https://stackoverflow.com/questions/29241056/how-do-i-use-np-newaxis)
+    dt = (np.nanmin(img_grid.min_dist_dt(v)))/2
     
-    # img_grid.pts += push
+    img_grid.pts += v*dt
     
-    
-    
-    # img_grid.plot_grid(lineW=0.05,markerS=0)
+    img_grid.plot_grid(lineW=0.15,markerS=0, save=f"Grid/Grid{i}.png")
     
