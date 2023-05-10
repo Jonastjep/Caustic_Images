@@ -14,7 +14,7 @@ from PhiCreation import compute_Phi
 
 run_computation = False
 
-im = Image.open('lena.png')
+im = Image.open('cat_posing.jpg')
 im_grey = im.convert('L') # convert the image to *greyscale*
 im_arr = np.array(im_grey)
 
@@ -33,16 +33,6 @@ img_grid = CL.Grid(grid_pts)
 
 # ############ CREATING D AND PHI ###################################
 # if run_computation:
-
-#     D = compute_D(im_arr, w, h, sub_w, sub_h, img_grid)
-#     CL.plot_hmap(D,"Difference",(-0.000003,0.000003))
-    
-#     #CREATE PHI MATRIX
-#     h = w/sub_w
-#     nb_it = 200
-    
-#     phi = compute_Phi(D, nb_it)
-#     CL.plot_hmap(phi,"Phi")
     
 # else:
 #     D = np.load("Difference/D_testing.npy")
@@ -59,13 +49,18 @@ for i in range(25):
     
     h = w/sub_w
     h=1
-    nb_it = 500
+    nb_it = 20
     
     phi = compute_Phi(-D, nb_it, h, str(i))
     
-    
+    #NEED TO FIGURE OUT THE BOUNDARIES FOR THE THING, THIS IS ARTIFICIAL FIX
     v = CL.gradient(phi)
-    np.save(f"VectorField{i}.npy", v)
+    v[:,0]=v[:,1]
+    v[:,-1]=v[:,-2]
+    v[0,:]=v[1,:]
+    v[-1,:]=v[-2,:]
+    
+    np.save(f"VectorField/VectorField{i}.npy", v)
     CL.plot_vectField(x,y,v,title="V VectField",save=f"VectorField/VectorField{i}.png")
     
     dt = (np.nanmin(img_grid.min_dist_dt(v)))/2
